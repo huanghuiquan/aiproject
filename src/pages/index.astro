@@ -1,0 +1,53 @@
+---
+// Import all markdown posts (eager) and sort by date descending
+const posts = Object.entries(import.meta.glob('../content/posts/*.md', { eager: true }))
+  .map(([path, mod]) => {
+    // path: ../content/posts/hello-world.md
+    const slug = path.split('/').pop().replace('.md', '');
+    return {
+      slug,
+      url: `/posts/${slug}`,
+      frontmatter: mod.frontmatter || {},
+    };
+  })
+  .sort((a, b) => new Date(b.frontmatter.pubDate) - new Date(a.frontmatter.pubDate));
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My Markdown Blog</title>
+    <style>
+      body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; }
+      header { margin-bottom: 2rem; }
+      a { color: #0b6efd; text-decoration: none; }
+      .post { margin-bottom: 1.5rem; }
+      .date { color: #6b7280; font-size: 0.9rem; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>My Markdown Blog</h1>
+      <p>Write articles in Markdown and drop them in <code>src/content/posts</code>.</p>
+    </header>
+
+    <main>
+      <section>
+        <h2>Posts</h2>
+        <ul>
+          {posts.map((p) => (
+            <li class="post">
+              <a href={p.url}><strong>{p.frontmatter.title || p.slug}</strong></a>
+              <div class="date">{p.frontmatter.pubDate || ''}</div>
+              {p.frontmatter.description ? <p>{p.frontmatter.description}</p> : null}
+            </li>
+          ))}
+        </ul>
+      </section>
+    </main>
+
+    <footer style="margin-top:3rem;color:#6b7280">
+      <small>Generated with Astro · Write posts in Markdown under <code>src/content/posts</code>.</small>
+    </footer>
+  </body>
+</html>

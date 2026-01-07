@@ -1,0 +1,55 @@
+---
+import { Astro } from 'astro';
+
+// Load all posts eagerly
+const modules = import.meta.glob('../../content/posts/*.md', { eager: true });
+const entries = Object.entries(modules).map(([path, mod]) => {
+  const slug = path.split('/').pop().replace('.md', '');
+  return { slug, module: mod };
+});
+
+export async function getStaticPaths() {
+  return entries.map((e) => ({ params: { slug: e.slug } }));
+}
+
+const { slug } = Astro.params;
+const postEntry = entries.find((e) => e.slug === slug);
+
+if (!postEntry) {
+  throw new Error(`Post not found: ${slug}`);
+}
+
+const { module: post } = postEntry;
+const { frontmatter } = post;
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{frontmatter.title || slug} — My Markdown Blog</title>
+    <style>
+      body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; max-width: 800px; margin: 2rem auto; padding: 0 1rem; line-height: 1.7; }
+      header a { color: #0b6efd; text-decoration: none; }
+      h1 { margin-bottom: 0.2rem; }
+      .date { color: #6b7280; font-size: 0.95rem; margin-bottom: 1rem; }
+      article img { max-width: 100%; }
+      pre { background: #0f172a; color: #e6eef8; padding: 1rem; overflow: auto; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a href="/">← Back</a>
+    </header>
+
+    <main>
+      <article>
+        <h1>{frontmatter.title}</h1>
+        <div class="date">{frontmatter.pubDate}</div>
+        <!-- Render the markdown content component -->
+        <div>
+          <post.default />
+        </div>
+      </article>
+    </main>
+  </body>
+</html>
